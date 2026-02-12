@@ -188,10 +188,9 @@ jobs:
     
     - name: Run dbt (Prod)
       run: |
-        dbt run --select staging
-        dbt run --select intermediate
-        dbt run --select marts
-        DBT_TARGET: prod
+        dbt run --select staging --target prod
+        dbt run --select intermediate --target prod
+        dbt run --select marts --target prod
     
     - name: Run Great Expectations
       run: |
