@@ -34,14 +34,38 @@ jobs:
     - name: Create profiles.yml
       run: |
         mkdir -p ~/.dbt
-        cp profiles.yml.template ~/.dbt/profiles.yml
-        # Replace placeholders with GitHub Secrets
-        sed -i "s/{{SNOWFLAKE_ACCOUNT}}/${{ secrets.SNOWFLAKE_ACCOUNT }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_USER}}/${{ secrets.SNOWFLAKE_USER }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_PASSWORD}}/${{ secrets.SNOWFLAKE_PASSWORD }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_DATABASE}}/${{ secrets.SNOWFLAKE_DATABASE }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_WAREHOUSE}}/${{ secrets.SNOWFLAKE_WAREHOUSE }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_ROLE}}/${{ secrets.SNOWFLAKE_ROLE }}/g" ~/.dbt/profiles.yml
+        # Create profiles.yml directly with secrets (more reliable than sed)
+        cat > ~/.dbt/profiles.yml << EOF
+        healthcare_analytics:
+          target: dev
+          outputs:
+            dev:
+              type: snowflake
+              account: "${{ secrets.SNOWFLAKE_ACCOUNT }}"
+              user: "${{ secrets.SNOWFLAKE_USER }}"
+              password: "${{ secrets.SNOWFLAKE_PASSWORD }}"
+              role: "${{ secrets.SNOWFLAKE_ROLE }}"
+              database: "${{ secrets.SNOWFLAKE_DATABASE }}"
+              warehouse: "${{ secrets.SNOWFLAKE_WAREHOUSE }}"
+              schema: raw
+              threads: 4
+              client_session_keep_alive: false
+              query_tag: healthcare_analytics_dev
+            prod:
+              type: snowflake
+              account: "${{ secrets.SNOWFLAKE_ACCOUNT }}"
+              user: "${{ secrets.SNOWFLAKE_USER }}"
+              password: "${{ secrets.SNOWFLAKE_PASSWORD }}"
+              role: "${{ secrets.SNOWFLAKE_ROLE }}"
+              database: "${{ secrets.SNOWFLAKE_DATABASE }}"
+              warehouse: "${{ secrets.SNOWFLAKE_WAREHOUSE }}"
+              schema: raw
+              threads: 8
+              client_session_keep_alive: false
+              query_tag: healthcare_analytics_prod
+        EOF
+        # Verify file was created
+        cat ~/.dbt/profiles.yml
     
     - name: Run dbt compile
       run: dbt compile
@@ -97,13 +121,23 @@ jobs:
     - name: Create profiles.yml (Dev)
       run: |
         mkdir -p ~/.dbt
-        cp profiles.yml.template ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_ACCOUNT}}/${{ secrets.SNOWFLAKE_ACCOUNT }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_USER}}/${{ secrets.SNOWFLAKE_USER }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_PASSWORD}}/${{ secrets.SNOWFLAKE_PASSWORD }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_DATABASE}}/${{ secrets.SNOWFLAKE_DATABASE }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_WAREHOUSE}}/${{ secrets.SNOWFLAKE_WAREHOUSE }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_ROLE}}/${{ secrets.SNOWFLAKE_ROLE }}/g" ~/.dbt/profiles.yml
+        cat > ~/.dbt/profiles.yml << EOF
+        healthcare_analytics:
+          target: dev
+          outputs:
+            dev:
+              type: snowflake
+              account: "${{ secrets.SNOWFLAKE_ACCOUNT }}"
+              user: "${{ secrets.SNOWFLAKE_USER }}"
+              password: "${{ secrets.SNOWFLAKE_PASSWORD }}"
+              role: "${{ secrets.SNOWFLAKE_ROLE }}"
+              database: "${{ secrets.SNOWFLAKE_DATABASE }}"
+              warehouse: "${{ secrets.SNOWFLAKE_WAREHOUSE }}"
+              schema: raw
+              threads: 4
+              client_session_keep_alive: false
+              query_tag: healthcare_analytics_dev
+        EOF
     
     - name: Run dbt (Dev)
       run: |
@@ -148,13 +182,23 @@ jobs:
     - name: Create profiles.yml (Prod)
       run: |
         mkdir -p ~/.dbt
-        cp profiles.yml.template ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_ACCOUNT}}/${{ secrets.SNOWFLAKE_ACCOUNT }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_USER}}/${{ secrets.SNOWFLAKE_USER }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_PASSWORD}}/${{ secrets.SNOWFLAKE_PASSWORD }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_DATABASE}}/${{ secrets.SNOWFLAKE_DATABASE }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_WAREHOUSE}}/${{ secrets.SNOWFLAKE_WAREHOUSE }}/g" ~/.dbt/profiles.yml
-        sed -i "s/{{SNOWFLAKE_ROLE}}/${{ secrets.SNOWFLAKE_ROLE }}/g" ~/.dbt/profiles.yml
+        cat > ~/.dbt/profiles.yml << EOF
+        healthcare_analytics:
+          target: prod
+          outputs:
+            prod:
+              type: snowflake
+              account: "${{ secrets.SNOWFLAKE_ACCOUNT }}"
+              user: "${{ secrets.SNOWFLAKE_USER }}"
+              password: "${{ secrets.SNOWFLAKE_PASSWORD }}"
+              role: "${{ secrets.SNOWFLAKE_ROLE }}"
+              database: "${{ secrets.SNOWFLAKE_DATABASE }}"
+              warehouse: "${{ secrets.SNOWFLAKE_WAREHOUSE }}"
+              schema: raw
+              threads: 8
+              client_session_keep_alive: false
+              query_tag: healthcare_analytics_prod
+        EOF
     
     - name: Run dbt (Prod)
       run: |
