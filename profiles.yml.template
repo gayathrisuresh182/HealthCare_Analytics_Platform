@@ -1,0 +1,32 @@
+# Copy this file to ~/.dbt/profiles.yml and update with your Snowflake credentials
+# On Windows: C:\Users\<username>\.dbt\profiles.yml
+
+healthcare_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{SNOWFLAKE_ACCOUNT}}"
+      user: "{{SNOWFLAKE_USER}}"
+      password: "{{SNOWFLAKE_PASSWORD}}"
+      role: "{{SNOWFLAKE_ROLE}}"
+      database: "{{SNOWFLAKE_DATABASE}}"
+      warehouse: "{{SNOWFLAKE_WAREHOUSE}}"
+      schema: raw
+      threads: 4
+      client_session_keep_alive: false
+      query_tag: healthcare_analytics_dev
+    
+    prod:
+      type: snowflake
+      account: "{{SNOWFLAKE_ACCOUNT}}"
+      user: "{{SNOWFLAKE_USER}}"
+      password: "{{SNOWFLAKE_PASSWORD}}"
+      role: "{{SNOWFLAKE_ROLE}}"
+      database: "{{SNOWFLAKE_DATABASE}}"
+      warehouse: "{{SNOWFLAKE_WAREHOUSE}}"
+      schema: raw
+      threads: 8
+      client_session_keep_alive: false
+      query_tag: healthcare_analytics_prod
+
