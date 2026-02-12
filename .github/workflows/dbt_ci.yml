@@ -28,8 +28,6 @@ jobs:
     
     - name: Install dbt packages
       run: dbt deps
-      env:
-        DBT_PROFILES_DIR: ~/.dbt
     
     - name: Create profiles.yml
       run: |
