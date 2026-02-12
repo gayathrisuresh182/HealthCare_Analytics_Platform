@@ -94,6 +94,7 @@ jobs:
       with:
         name: dbt-test-results
         path: target/
+        if-no-files-found: warn
 
   dbt-run-dev:
     name: dbt Run (Dev Environment)
