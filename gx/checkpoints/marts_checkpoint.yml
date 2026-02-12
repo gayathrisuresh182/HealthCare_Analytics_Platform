@@ -1,0 +1,17 @@
+name: marts_checkpoint
+config_version: 1.0
+template_name: null
+module_name: great_expectations.checkpoint
+class_name: Checkpoint
+run_name_template: '%Y%m%d-%H%M%S-%f'
+expectation_suite_name: marts.fct_inpatient_charges
+batch_request:
+  datasource_name: snowflake_datasource
+  data_asset_name: fct_inpatient_charges
+action_list:
+- name: store_validation_result
+  action:
+    class_name: StoreValidationResultAction
+- name: update_data_docs
+  action:
+    class_name: UpdateDataDocsAction

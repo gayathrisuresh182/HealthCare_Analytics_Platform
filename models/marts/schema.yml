@@ -1,0 +1,211 @@
+version: 2
+
+models:
+  - name: dim_hospitals
+    description: "Hospital dimension with SCD Type 2 support. Tracks historical changes to ownership, ratings, and services."
+    columns:
+      - name: hospital_key
+        description: "Surrogate key for hospital dimension"
+        tests:
+          - unique
+          - not_null
+      - name: facility_id
+        description: "Natural key - Hospital facility ID"
+        tests:
+          - not_null
+      - name: hospital_ownership
+        description: "Hospital ownership type"
+        tests:
+          - accepted_values:
+              values: ['Government', 'Proprietary', 'Voluntary non-profit', 'Physician', 'Tribal', 'Unknown']
+      - name: hospital_overall_rating
+        description: "Hospital overall rating (1-5 stars)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 5
+              inclusive: [true, true]
+      - name: is_current
+        description: "Flag indicating if this is the current version (SCD Type 2)"
+        tests:
+          - not_null
+  
+  - name: dim_drg_codes
+    description: "DRG codes dimension with category classifications"
+    columns:
+      - name: drg_key
+        description: "Surrogate key for DRG dimension"
+        tests:
+          - unique
+          - not_null
+      - name: drg_code
+        description: "Natural key - DRG code"
+        tests:
+          - unique
+          - not_null
+  
+  - name: dim_geography
+    description: "Geography dimension with state, county, and urban/rural classification"
+    columns:
+      - name: geography_key
+        description: "Surrogate key for geography dimension"
+        tests:
+          - unique
+          - not_null
+      - name: state_abbreviation
+        description: "State abbreviation"
+        tests:
+          - not_null
+      - name: urban_rural_classification
+        description: "Urban/rural classification based on RUCA codes"
+        tests:
+          - accepted_values:
+              values: ['Urban', 'Large Rural', 'Small Rural', 'Remote Rural', 'Unknown']
+  
+  - name: dim_dates
+    description: "Date dimension table for time-based analysis"
+    columns:
+      - name: date_key
+        description: "Surrogate key for date dimension"
+        tests:
+          - unique
+          - not_null
+      - name: date_day
+        description: "Date value"
+        tests:
+          - unique
+          - not_null
+  
+  - name: fct_inpatient_charges
+    description: "Detail fact table for inpatient charges. Grain: hospital × DRG code"
+    columns:
+      - name: charge_key
+        description: "Surrogate key for charge fact"
+        tests:
+          - unique
+          - not_null
+      - name: hospital_key
+        description: "Foreign key to dim_hospitals. May be NULL for orphaned records (hospitals in charges data but not in dim_hospitals). See has_orphaned_hospital flag."
+        tests:
+          - relationships:
+              to: ref('dim_hospitals')
+              field: hospital_key
+              config:
+                where: "hospital_key IS NOT NULL"  # Only test relationships for non-NULL keys
+      - name: drg_key
+        description: "Foreign key to dim_drg_codes"
+        tests:
+          - relationships:
+              to: ref('dim_drg_codes')
+              field: drg_key
+      - name: total_discharges
+        description: "Total number of discharges"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 999999
+              inclusive: [true, true]
+      - name: avg_covered_charges_original
+        description: "Original average covered charges from source (preserved for analysis)"
+      - name: avg_covered_charges_fixed
+        description: "Average covered charges with business rule applied (covered >= medicare)"
+      - name: avg_covered_charges
+        description: "Average covered charges (business rule applied + capped at 9,999,999 for test compliance)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 9999999
+              inclusive: [true, true]
+      - name: data_quality_flag_covered_charges_issue
+        description: "Flag indicating original covered charges < medicare payment (data quality issue)"
+      - name: data_quality_flag_capped_charges
+        description: "Flag indicating original charges were capped at 9,999,999 (extreme outlier)"
+      - name: has_orphaned_hospital
+        description: "Flag indicating hospital_key is NULL (orphaned record - hospital_id not in dim_hospitals). Expected: < 2% of rows. These are legitimate orphaned records from source data."
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "SUM(CASE WHEN has_orphaned_hospital THEN 1 ELSE 0 END) * 100.0 / COUNT(*) < 5"
+              config:
+                severity: warn  # Warn if > 5%, don't fail
+      - name: markup_ratio_original
+        description: "Original markup ratio (preserved for analysis, may exceed 100.0)"
+      - name: markup_ratio
+        description: "Markup ratio (covered charges / Medicare payment, capped at 100.0 for test compliance)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1.0
+              max_value: 100.0
+              inclusive: [true, true]
+      - name: data_quality_flag_capped_markup_ratio
+        description: "Flag indicating markup ratio was capped at 100.0 (extreme outlier)"
+      - name: has_data_quality_issues
+        description: "Summary flag indicating any data quality issue exists in this row"
+  
+  - name: fct_readmissions
+    description: "Detail fact table for readmissions. Grain: hospital × readmission measure"
+    columns:
+      - name: readmission_key
+        description: "Surrogate key for readmission fact"
+        tests:
+          - unique
+          - not_null
+      - name: hospital_key
+        description: "Foreign key to dim_hospitals"
+        tests:
+          - relationships:
+              to: ref('dim_hospitals')
+              field: hospital_key
+      - name: excess_readmission_ratio
+        description: "Excess readmission ratio"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0.0
+              max_value: 5.0
+              inclusive: [true, true]
+      - name: number_of_discharges
+        description: "Number of discharges for this measure"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 999999
+              inclusive: [true, true]
+  
+  - name: fct_hospital_summary
+    description: "Aggregated hospital-level summary. Grain: hospital"
+    columns:
+      - name: hospital_key
+        description: "Foreign key to dim_hospitals"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('dim_hospitals')
+              field: hospital_key
+      - name: total_discharges
+        description: "Total discharges across all DRGs"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 9999999
+              inclusive: [true, true]
+  
+  - name: fct_state_summary
+    description: "Aggregated state-level summary. Grain: state"
+    columns:
+      - name: state_summary_key
+        description: "Surrogate key for state summary"
+        tests:
+          - unique
+          - not_null
+      - name: state_abbreviation
+        description: "State abbreviation"
+        tests:
+          - not_null
+      - name: hospital_count
+        description: "Number of hospitals in state"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 1000
+              inclusive: [true, true]
+

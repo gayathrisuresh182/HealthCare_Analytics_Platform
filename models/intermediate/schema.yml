@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: int_charges_quality_merged
+    description: "Intermediate model merging charges with hospital quality metrics. Demonstrates complex JOINs."
+    columns:
+      - name: hospital_id
+        description: "Hospital ID"
+        tests:
+          - not_null
+      - name: drg_code
+        description: "DRG code"
+        tests:
+          - not_null
+  
+  - name: int_hospital_cost_metrics
+    description: "Intermediate model with advanced cost metrics using window functions. Demonstrates RANK, DENSE_RANK, NTILE, PERCENTILE_CONT, LAG, LEAD, and statistical functions."
+    columns:
+      - name: hospital_id
+        description: "Hospital ID"
+        tests:
+          - not_null
+      - name: rank_by_volume
+        description: "Rank by total discharges (window function)"
+      - name: charge_percentile_decile
+        description: "Charge percentile decile (NTILE window function)"
+      - name: charge_z_score
+        description: "Z-score for charges relative to state average"
+  
+  - name: int_readmission_analysis
+    description: "Intermediate model for readmission analysis with window functions. Demonstrates ranking and percentile analysis."
+    columns:
+      - name: facility_id
+        description: "Hospital facility ID"
+        tests:
+          - not_null
+      - name: rank_best_performance
+        description: "Rank by best readmission performance"
+      - name: performance_quintile
+        description: "Performance quintile (NTILE window function)"
+

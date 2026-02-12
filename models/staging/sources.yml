@@ -1,0 +1,147 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw data from CMS public datasets loaded into Snowflake raw schema"
+    database: "{{ var('raw_database', target.database) }}"
+    schema: raw
+    tables:
+      - name: ipps_charges
+        description: "Medicare Inpatient Hospitals - by Provider and Service. ~146,427 rows. Grain: hospital × DRG code."
+        columns:
+          - name: Rndrng_Prvdr_CCN
+            description: "Hospital ID - Primary join key"
+            tests:
+              - not_null
+          - name: Rndrng_Prvdr_Org_Name
+            description: "Hospital name"
+          - name: Rndrng_Prvdr_City
+            description: "City"
+          - name: Rndrng_Prvdr_St
+            description: "Street address"
+          - name: Rndrng_Prvdr_State_FIPS
+            description: "FIPS state code"
+          - name: Rndrng_Prvdr_Zip5
+            description: "ZIP code (5 digits)"
+          - name: Rndrng_Prvdr_State_Abrvtn
+            description: "State abbreviation (AL, CA, etc.)"
+          - name: Rndrng_Prvdr_RUCA
+            description: "Rural-Urban code (1-10)"
+          - name: Rndrng_Prvdr_RUCA_Desc
+            description: "RUCA description"
+          - name: DRG_Cd
+            description: "DRG code (e.g., '003', '023')"
+            tests:
+              - not_null
+          - name: DRG_Desc
+            description: "DRG description"
+          - name: Tot_Dschrgs
+            description: "Total discharges (volume)"
+          - name: Avg_Submtd_Cvrd_Chrg
+            description: "Average submitted covered charges (has $ and commas)"
+          - name: Avg_Tot_Pymt_Amt
+            description: "Average total payment (has $ and commas)"
+          - name: Avg_Mdcr_Pymt_Amt
+            description: "Average Medicare payment (has $ and commas)"
+      
+      - name: hospital_general_info
+        description: "Hospital General Information master list. ~5,421 rows. Grain: one row per hospital."
+        columns:
+          - name: Facility ID
+            description: "Hospital ID - Primary join key"
+            # Tests removed - already tested in staging models
+          - name: Facility Name
+            description: "Hospital name"
+          - name: Address
+            description: "Street address"
+          - name: City/Town
+            description: "City"
+          - name: State
+            description: "State abbreviation"
+          - name: ZIP Code
+            description: "ZIP code"
+          - name: County/Parish
+            description: "County name"
+          - name: Telephone Number
+            description: "Phone number"
+          - name: Hospital Type
+            description: "Acute Care, Critical Access, etc."
+          - name: Hospital Ownership
+            description: "Government, Proprietary, Voluntary non-profit"
+          - name: Emergency Services
+            description: "Yes/No"
+          - name: Meets criteria for birthing friendly designation
+            description: "Y/N"
+          - name: Hospital overall rating
+            description: "1-5 stars (some blank)"
+          - name: Hospital overall rating footnote
+            description: "Rating footnote"
+          - name: MORT Group Measure Count
+            description: "Mortality measure count"
+          - name: Count of Facility MORT Measures
+            description: "Facility mortality measures"
+          - name: Count of MORT Measures Better
+            description: "Better than national average"
+          - name: Count of MORT Measures No Different
+            description: "No different from national average"
+          - name: Count of MORT Measures Worse
+            description: "Worse than national average"
+          - name: Safety Group Measure Count
+            description: "Safety measure count"
+          - name: Count of Facility Safety Measures
+            description: "Facility safety measures"
+          - name: Count of Safety Measures Better
+            description: "Better than national average"
+          - name: Count of Safety Measures No Different
+            description: "No different from national average"
+          - name: Count of Safety Measures Worse
+            description: "Worse than national average"
+          - name: READM Group Measure Count
+            description: "Readmission measure count"
+          - name: Count of Facility READM Measures
+            description: "Facility readmission measures"
+          - name: Count of READM Measures Better
+            description: "Better than national average"
+          - name: Count of READM Measures No Different
+            description: "No different from national average"
+          - name: Count of READM Measures Worse
+            description: "Worse than national average"
+          - name: Pt Exp Group Measure Count
+            description: "Patient experience measure count"
+          - name: Count of Facility Pt Exp Measures
+            description: "Facility patient experience measures"
+          - name: TE Group Measure Count
+            description: "Timely and effective care measure count"
+          - name: Count of Facility TE Measures
+            description: "Facility timely and effective measures"
+      
+      - name: readmissions
+        description: "Hospital Readmissions Reduction Program data. ~18,510 rows. Grain: hospital × readmission measure."
+        columns:
+          - name: Facility Name
+            description: "Hospital name"
+          - name: Facility ID
+            description: "Hospital ID - Primary join key"
+            # Tests removed - already tested in staging models
+          - name: State
+            description: "State abbreviation"
+          - name: Measure Name
+            description: "Readmission measure (READM-30-AMI-HRRP, READM-30-HF-HRRP, etc.)"
+            # Tests removed - already tested in staging models
+          - name: Number of Discharges
+            description: "Number of discharges for this measure"
+          - name: Footnote
+            description: "Data quality footnote"
+          - name: Excess Readmission Ratio
+            description: "Ratio of observed to expected readmissions"
+          - name: Predicted Readmission Rate
+            description: "Predicted readmission rate"
+          - name: Expected Readmission Rate
+            description: "Expected readmission rate"
+          - name: Number of Readmissions
+            description: "Actual number of readmissions"
+          - name: Start Date
+            description: "Measure period start date"
+          - name: End Date
+            description: "Measure period end date"
+

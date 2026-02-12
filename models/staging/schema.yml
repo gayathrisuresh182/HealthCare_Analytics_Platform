@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: stg_ipps_charges
+    description: "Staging model for Medicare Inpatient Hospitals charges data. Cleaned and standardized."
+    columns:
+      - name: hospital_id
+        description: "Hospital ID - Primary join key"
+        tests:
+          - not_null
+      - name: drg_code
+        description: "DRG code"
+        tests:
+          - not_null
+      - name: total_discharges
+        description: "Total discharges (cleaned, integer)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 999999
+              inclusive: [true, true]
+      - name: avg_covered_charges
+        description: "Average covered charges (cleaned, decimal). Original values preserved - capping applied in marts layer."
+        # Note: No range test here - original values preserved, outliers handled in marts layer
+  
+  - name: stg_hospitals
+    description: "Staging model for Hospital General Information. Cleaned and standardized."
+    columns:
+      - name: facility_id
+        description: "Hospital facility ID - Primary join key"
+        tests:
+          - not_null
+          - unique
+      - name: hospital_overall_rating
+        description: "Hospital overall rating (1-5)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 5
+              inclusive: [true, true]
+      - name: emergency_services
+        description: "Emergency services availability (Yes/No)"
+        tests:
+          - accepted_values:
+              values: ['Yes', 'No']
+  
+  - name: stg_readmissions
+    description: "Staging model for Hospital Readmissions Reduction Program data. Cleaned and standardized."
+    columns:
+      - name: facility_id
+        description: "Hospital facility ID - Primary join key"
+        tests:
+          - not_null
+      - name: measure_name
+        description: "Readmission measure name"
+        tests:
+          - not_null
+      - name: excess_readmission_ratio
+        description: "Excess readmission ratio"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0.0
+              max_value: 5.0
+              inclusive: [true, true]
+
