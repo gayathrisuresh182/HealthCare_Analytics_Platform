@@ -122,11 +122,8 @@ models:
         description: "Flag indicating original charges were capped at 9,999,999 (extreme outlier)"
       - name: has_orphaned_hospital
         description: "Flag indicating hospital_key is NULL (orphaned record - hospital_id not in dim_hospitals). Expected: < 2% of rows. These are legitimate orphaned records from source data."
-        tests:
-          - dbt_utils.expression_is_true:
-              expression: "SUM(CASE WHEN has_orphaned_hospital THEN 1 ELSE 0 END) * 100.0 / COUNT(*) < 5"
-              config:
-                severity: warn  # Warn if > 5%, don't fail
+        # Note: Orphaned hospital percentage is monitored via Great Expectations
+        # This flag is for tracking purposes only
       - name: markup_ratio_original
         description: "Original markup ratio (preserved for analysis, may exceed 100.0)"
       - name: markup_ratio
