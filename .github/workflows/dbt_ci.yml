@@ -29,7 +29,7 @@ jobs:
     - name: Install dbt packages
       run: dbt deps
       env:
-        DBT_PROFILES_DIR: ./
+        DBT_PROFILES_DIR: ~/.dbt
     
     - name: Create profiles.yml
       run: |
@@ -70,22 +70,22 @@ jobs:
     - name: Run dbt compile
       run: dbt compile
       env:
-        DBT_PROFILES_DIR: ./
+        DBT_PROFILES_DIR: ~/.dbt
     
     - name: Run dbt parse
       run: dbt parse
       env:
-        DBT_PROFILES_DIR: ./
+        DBT_PROFILES_DIR: ~/.dbt
     
     - name: Run dbt test (staging)
       run: dbt test --select staging
       env:
-        DBT_PROFILES_DIR: ./
+        DBT_PROFILES_DIR: ~/.dbt
     
     - name: Run dbt test (marts)
       run: dbt test --select marts
       env:
-        DBT_PROFILES_DIR: ./
+        DBT_PROFILES_DIR: ~/.dbt
       continue-on-error: false
     
     - name: Upload test results
@@ -146,14 +146,14 @@ jobs:
         dbt run --select intermediate
         dbt run --select marts
       env:
-        DBT_PROFILES_DIR: ./
+        DBT_PROFILES_DIR: ~/.dbt
         DBT_TARGET: dev
     
     - name: Run Great Expectations
       run: |
         python scripts/gx_run_checkpoint.py
       env:
-        DBT_PROFILES_DIR: ./
+        DBT_PROFILES_DIR: ~/.dbt
       continue-on-error: true
 
   dbt-run-prod:
@@ -207,13 +207,13 @@ jobs:
         dbt run --select intermediate
         dbt run --select marts
       env:
-        DBT_PROFILES_DIR: ./
+        DBT_PROFILES_DIR: ~/.dbt
         DBT_TARGET: prod
     
     - name: Run Great Expectations
       run: |
         python scripts/gx_run_checkpoint.py
       env:
-        DBT_PROFILES_DIR: ./
+        DBT_PROFILES_DIR: ~/.dbt
       continue-on-error: true
 
